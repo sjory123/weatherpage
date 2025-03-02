@@ -33,7 +33,6 @@ export default function Home() {
       await navigator.clipboard.writeText(text);
     } catch (err) {
       console.error('Failed to copy to clipboard:', err);
-      // Silently fail clipboard operations as they're not critical
     }
   };
 
@@ -47,10 +46,12 @@ export default function Home() {
     setError('');
     
     try {
+      console.log('[UI] Initiating weather search for:', city);
       const data = await getWeatherData(city);
+      console.log('[UI] Weather data received:', data);
       setWeather(data);
-      // Don't automatically copy to clipboard to avoid permission errors
     } catch (err) {
+      console.error('[UI] Error fetching weather:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch weather data. Please try again.';
       setError(errorMessage);
       setWeather(null);
@@ -60,72 +61,67 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen p-8 bg-gradient-to-b from-blue-100 to-blue-200 dark:from-gray-900 dark:to-gray-800">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold text-center mb-8 text-blue-900 dark:text-blue-100">
-          Global Weather Checker
+    <main className="min-h-screen p-8 bg-gradient-to-br from-pink-200 via-purple-100 to-blue-200 dark:from-indigo-900 dark:via-purple-900 dark:to-pink-900 transition-colors duration-500">
+      <div className="max-w-4xl mx-auto space-y-8">
+        <h1 className="text-6xl font-bold text-center mb-12 text-purple-600 dark:text-purple-300 animate-bounce-gentle drop-shadow-lg">
+          🌈 Global Weather Checker ☀️
         </h1>
         
-        <div className="flex gap-2 mb-8 justify-center">
+        <div className="flex flex-col sm:flex-row gap-4 mb-8 justify-center items-center transition-all duration-300 ease-in-out">
           <input
             type="text"
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            placeholder="Enter city name..."
-            className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white w-64"
+            placeholder="✨ Enter city name..."
+            className="search-input px-6 py-3 rounded-full text-lg w-full sm:w-96 text-purple-700 dark:text-purple-200 placeholder-purple-400 dark:placeholder-purple-500 border-2 border-purple-300 dark:border-purple-600 focus:border-purple-500 dark:focus:border-purple-400"
             onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
           />
           <Button
             onClick={handleSearch}
             disabled={loading}
-            className="flex items-center gap-2"
+            className="search-button w-full sm:w-auto px-8 py-3 text-lg font-semibold text-white rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all duration-300"
           >
-            <Search className="w-4 h-4" />
-            {loading ? 'Searching...' : 'Search'}
+            <Search className="w-5 h-5 mr-2" />
+            {loading ? '🔍 Searching...' : '🔍 Search'}
           </Button>
         </div>
 
         {error && (
-          <div className="text-red-500 text-center mb-4">{error}</div>
+          <div className="text-red-500 text-center mb-4 p-4 bg-red-100/90 dark:bg-red-900/30 rounded-2xl animate-shake backdrop-blur-sm border-2 border-red-300 dark:border-red-700">
+            ❌ {error}
+          </div>
         )}
 
         {weather && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg">
-            <h2 className="text-2xl font-semibold mb-4 text-center text-gray-800 dark:text-white">
-              {weather.name}
+          <div className="weather-card bg-white/90 dark:bg-gray-800/90 rounded-3xl p-8 shadow-2xl backdrop-blur-sm border-2 border-purple-200 dark:border-purple-700 hover:transform hover:scale-102 transition-all duration-300">
+            <h2 className="text-4xl font-bold mb-6 text-center text-purple-600 dark:text-purple-300">
+              🏙️ {weather.name}
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="text-center">
-                <img
-                  src={`https://developer.accuweather.com/sites/default/files/${weather.weather[0].icon}-s.png`}
-                  alt={weather.weather[0].description}
-                  className="mx-auto"
-                />
-                <p className="text-4xl font-bold text-gray-800 dark:text-white">
-                  {Math.round(weather.main.temp)}°C
-                </p>
-                <p className="text-gray-600 dark:text-gray-300 capitalize">
-                  {weather.weather[0].description}
-                </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-6">
+                <div className="text-center p-4 bg-purple-100/50 dark:bg-purple-900/50 rounded-2xl border border-purple-200 dark:border-purple-700">
+                  <p className="text-5xl font-bold text-purple-700 dark:text-purple-300 mb-2">{Math.round(weather.main.temp)}°C</p>
+                  <p className="text-lg text-purple-600 dark:text-purple-400">Feels like {Math.round(weather.main.feels_like)}°C</p>
+                </div>
+                <div className="text-center">
+                  <img
+                    src={`http://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`}
+                    alt={weather.weather[0].description}
+                    className="weather-icon mx-auto w-24 h-24"
+                  />
+                  <p className="text-xl text-purple-600 dark:text-purple-400 capitalize">{weather.weather[0].description}</p>
+                </div>
               </div>
               <div className="space-y-4">
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-300">Feels like</span>
-                  <span className="font-semibold text-gray-800 dark:text-white">
-                    {Math.round(weather.main.feels_like)}°C
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-300">Humidity</span>
-                  <span className="font-semibold text-gray-800 dark:text-white">
-                    {weather.main.humidity}%
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-300">Wind Speed</span>
-                  <span className="font-semibold text-gray-800 dark:text-white">
-                    {weather.wind.speed} m/s
-                  </span>
+                <div className="p-4 bg-purple-100/50 dark:bg-purple-900/50 rounded-2xl border border-purple-200 dark:border-purple-700">
+                  <p className="text-lg mb-2">
+                    <span className="font-semibold text-purple-600 dark:text-purple-400">💧 Humidity:</span>
+                    <span className="ml-2 text-purple-700 dark:text-purple-300">{weather.main.humidity}%</span>
+                  </p>
+                  <p className="text-lg">
+                    <span className="font-semibold text-purple-600 dark:text-purple-400">💨 Wind Speed:</span>
+                    <span className="ml-2 text-purple-700 dark:text-purple-300">{weather.wind.speed} m/s</span>
+                  </p>
                 </div>
               </div>
             </div>
